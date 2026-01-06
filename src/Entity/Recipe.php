@@ -46,11 +46,18 @@ class Recipe
     #[ORM\OneToMany(targetEntity: Rating::class, mappedBy: 'recipe', orphanRemoval: true)]
     private Collection $ratings;
 
+    /**
+     * @var Collection<int, RecipeNutrient>
+     */
+    #[ORM\OneToMany(targetEntity: RecipeNutrient::class, mappedBy: 'recipe', orphanRemoval: true)]
+    private Collection $recipeNutrients;
+
     public function __construct()
     {
         $this->ingredients = new ArrayCollection();
         $this->steps = new ArrayCollection();
         $this->ratings = new ArrayCollection();
+        $this->recipeNutrients = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -190,6 +197,36 @@ class Recipe
             // set the owning side to null (unless already changed)
             if ($rating->getRecipe() === $this) {
                 $rating->setRecipe(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RecipeNutrient>
+     */
+    public function getRecipeNutrients(): Collection
+    {
+        return $this->recipeNutrients;
+    }
+
+    public function addRecipeNutrient(RecipeNutrient $recipeNutrient): static
+    {
+        if (!$this->recipeNutrients->contains($recipeNutrient)) {
+            $this->recipeNutrients->add($recipeNutrient);
+            $recipeNutrient->setRecipe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecipeNutrient(RecipeNutrient $recipeNutrient): static
+    {
+        if ($this->recipeNutrients->removeElement($recipeNutrient)) {
+            // set the owning side to null (unless already changed)
+            if ($recipeNutrient->getRecipe() === $this) {
+                $recipeNutrient->setRecipe(null);
             }
         }
 
