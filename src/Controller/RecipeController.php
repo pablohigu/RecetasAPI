@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Rating;
+use Symfony\Component\HttpFoundation\Request;
 
 // Definimos la ruta base para este controlador (opcional, pero organizado)
 #[Route('/recipes')]
