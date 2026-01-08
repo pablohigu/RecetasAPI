@@ -17,6 +17,12 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Rating;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+use App\Model\RecipeTypeDTO;
+use App\Model\IngredientDTO;
+use App\Model\StepDTO;
+use App\Model\NutrientTypeDTO;
+use App\Model\RecipeDTO;
 
 // Definimos la ruta base para este controlador (opcional, pero organizado)
 #[Route('/recipes')]
@@ -33,6 +39,16 @@ class RecipeController extends AbstractController
         #[MapRequestPayload] RecipeNewDTO $recipeDto
     ): JsonResponse
     {
+        // Validación: Al menos 1 ingrediente
+        if (count($recipeDto->ingredients) < 1) {
+            return $this->json(['error' => 'La receta debe tener al menos 1 ingrediente.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Validación: Al menos 1 paso
+        if (count($recipeDto->steps) < 1) {
+            return $this->json(['error' => 'La receta debe tener al menos 1 paso.'], Response::HTTP_BAD_REQUEST);
+        }
+
         // 1. Buscar el Tipo de Receta en BBDD (Validación de negocio: debe existir)
         $recipeType = $this->entityManager->getRepository(RecipeType::class)->find($recipeDto->typeId);
         
@@ -103,6 +119,8 @@ class RecipeController extends AbstractController
             'title' => $recipe->getTitle()
         ], Response::HTTP_OK);
     }
+
+    #[Route('', name: 'get_recipes', methods: ['GET'])]
     public function getRecipes(
         #[MapQueryParameter] ?int $type = null // Parámetro opcional de URL (PDF pág. 23)
     ): JsonResponse
@@ -182,5 +200,67 @@ class RecipeController extends AbstractController
         }
 
         return $this->json($responseList);
+    }
+
+    // --- BORRADO LÓGICO ---
+    // Endpoint: DELETE /recipes/{recipeId}
+    #[Route('/{recipeId}', name: 'delete_recipe', methods: ['DELETE'])]
+    public function deleteRecipe(int $recipeId): JsonResponse
+    {
+        // 1. Buscamos la receta
+        $recipe = $this->entityManager->getRepository(Recipe::class)->find($recipeId);
+
+        // 2. Validación: Debe existir y NO estar ya borrada
+        if (!$recipe || $recipe->isDeleted()) {
+            return $this->json(['error' => 'La receta no existe o ya ha sido eliminada.'], Response::HTTP_NOT_FOUND);
+        }
+
+        // 3. Borrado Lógico (No usamos remove(), solo cambiamos el flag)
+        $recipe->setIsDeleted(true);
+
+        // 4. Guardamos cambios
+        $this->entityManager->flush();
+
+        return $this->json(['message' => 'Receta eliminada correctamente (Borrado lógico).'], Response::HTTP_OK);
+    }
+
+    // --- VALORACIÓN (RATING) ---
+    // Endpoint: POST /recipes/{recipeId}/rating/{rate}
+    #[Route('/{recipeId}/rating/{rate}', name: 'rate_recipe', methods: ['POST'])]
+    public function rateRecipe(int $recipeId, int $rate, Request $request): JsonResponse
+    {
+        // 1. Validación de Rango (0-5)
+        if ($rate < 0 || $rate > 5) {
+            return $this->json(['error' => 'El voto debe estar entre 0 y 5.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // 2. Validar que la receta existe
+        $recipe = $this->entityManager->getRepository(Recipe::class)->find($recipeId);
+        if (!$recipe || $recipe->isDeleted()) {
+            return $this->json(['error' => 'La receta no existe.'], Response::HTTP_NOT_FOUND);
+        }
+
+        // 3. Validar IP única
+        $clientIp = $request->getClientIp();
+        
+        $existingRating = $this->entityManager->getRepository(Rating::class)->findOneBy([
+            'recipe' => $recipe,
+            'ipAddress' => $clientIp
+        ]);
+
+        if ($existingRating) {
+            return $this->json(['error' => 'Ya has votado esta receta desde esta IP.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // 4. Crear el voto
+        $rating = new Rating();
+        $rating->setScore($rate);
+        $rating->setIpAddress($clientIp ?? '127.0.0.1');
+        $rating->setRecipe($recipe);
+
+        $this->entityManager->persist($rating);
+        $this->entityManager->flush();
+
+        return $this->json(['message' => 'Voto registrado correctamente.'], Response::HTTP_OK);
     }
 }
