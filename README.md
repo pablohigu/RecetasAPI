@@ -1,4 +1,4 @@
-# 4VChef API (RecetasAPI) 👨‍🍳
+# 4VChef API (RecetasAPI) 
 
 API REST desarrollada con **Symfony** para la gestión de recetas de cocina, cálculo nutricional y sistema de valoraciones. Este proyecto sigue una arquitectura MVC estricta, utiliza DTOs para la validación de entrada/salida y Doctrine ORM para la persistencia de datos.
 
