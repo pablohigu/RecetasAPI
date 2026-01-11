@@ -8,8 +8,6 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 class NutrientNewDTO
 {
     public function __construct(
-        // Usamos SerializedName porque en el JSON viene como "type-id" (kebab-case)
-        // pero en PHP usamos camelCase.
         #[Assert\NotBlank]
         #[SerializedName('type-id')]
         public int $typeId,

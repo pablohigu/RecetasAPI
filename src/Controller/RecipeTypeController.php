@@ -17,10 +17,10 @@ class RecipeTypeController extends AbstractController
     #[Route('', name: 'get_recipe_types', methods: ['GET'])]
     public function getRecipeTypes(): JsonResponse
     {
-        // 1. Recuperar entidades
+      
         $types = $this->entityManager->getRepository(RecipeType::class)->findAll();
         
-        // 2. Convertir a DTOs
+    
         $data = [];
         foreach ($types as $type) {
             $data[] = new RecipeTypeDTO($type->getId(), $type->getName(), $type->getDescription());

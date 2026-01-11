@@ -20,7 +20,7 @@ class RecipeNewDTO
         #[SerializedName('type-id')]
         public int $typeId,
 
-        // Validamos que sea un array, que tenga al menos 1, y que cada elemento sea válido
+       
         #[Assert\Count(min: 1, minMessage: "Debes añadir al menos 1 ingrediente")]
         #[Assert\Valid]
         /** @var IngredientDTO[] */

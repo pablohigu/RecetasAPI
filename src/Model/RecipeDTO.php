@@ -14,9 +14,9 @@ class RecipeDTO
         
         public RecipeTypeDTO $type,
         
-        public array $ingredients, // Array de IngredientDTO
-        public array $steps,       // Array de StepDTO
-        public array $nutrients,   // Array de objetos NutrientResponseDTO (ver abajo)
-        public ?object $rating     // Objeto simple con votos y media
+        public array $ingredients, 
+        public array $steps,      
+        public array $nutrients,   
+        public ?object $rating     
     ) {}
 }
