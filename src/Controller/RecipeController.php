@@ -40,19 +40,19 @@ class RecipeController extends AbstractController
     {
         
         if (count($recipeDto->ingredients) < 1) {
-            return $this->json(['error' => 'La receta debe tener al menos 1 ingrediente.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['code' => Response::HTTP_BAD_REQUEST, 'description' => 'La receta debe tener al menos 1 ingrediente.'], Response::HTTP_BAD_REQUEST);
         }
 
        
         if (count($recipeDto->steps) < 1) {
-            return $this->json(['error' => 'La receta debe tener al menos 1 paso.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['code' => Response::HTTP_BAD_REQUEST, 'description' => 'La receta debe tener al menos 1 paso.'], Response::HTTP_BAD_REQUEST);
         }
 
        
         $recipeType = $this->entityManager->getRepository(RecipeType::class)->find($recipeDto->typeId);
         
         if (!$recipeType) {
-            return $this->json(['error' => 'El tipo de receta especificado no existe.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['code' => Response::HTTP_BAD_REQUEST, 'description' => 'El tipo de receta especificado no existe.'], Response::HTTP_BAD_REQUEST);
         }
 
         
@@ -86,7 +86,7 @@ class RecipeController extends AbstractController
             $nutrientType = $this->entityManager->getRepository(NutrientType::class)->find($nutDto->typeId);
             
             if (!$nutrientType) {
-                return $this->json(['error' => "El tipo de nutriente ID {$nutDto->typeId} no existe."], Response::HTTP_BAD_REQUEST);
+                return $this->json(['code' => Response::HTTP_BAD_REQUEST, 'description' => "El tipo de nutriente ID {$nutDto->typeId} no existe."], Response::HTTP_BAD_REQUEST);
             }
 
             $recipeNutrient = new RecipeNutrient();
@@ -132,7 +132,7 @@ class RecipeController extends AbstractController
         $recipe = $this->entityManager->getRepository(Recipe::class)->find($recipeId);
 
         if (!$recipe || $recipe->isDeleted()) {
-            return $this->json(['error' => 'La receta no existe o ya ha sido eliminada.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['code' => Response::HTTP_NOT_FOUND, 'description' => 'La receta no existe o ya ha sido eliminada.'], Response::HTTP_NOT_FOUND);
         }
 
         $recipe->setIsDeleted(true);
@@ -146,11 +146,11 @@ class RecipeController extends AbstractController
     public function rateRecipe(int $recipeId, int $rate, Request $request): JsonResponse
     {
         if ($rate < 0 || $rate > 5) {
-            return $this->json(['error' => 'El voto debe estar entre 0 y 5.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['code' => Response::HTTP_BAD_REQUEST, 'description' => 'El voto debe estar entre 0 y 5.'], Response::HTTP_BAD_REQUEST);
         }
         $recipe = $this->entityManager->getRepository(Recipe::class)->find($recipeId);
         if (!$recipe || $recipe->isDeleted()) {
-            return $this->json(['error' => 'La receta no existe.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['code' => Response::HTTP_NOT_FOUND, 'description' => 'La receta no existe.'], Response::HTTP_NOT_FOUND);
         }
 
         $clientIp = $request->getClientIp();
@@ -161,7 +161,7 @@ class RecipeController extends AbstractController
         ]);
 
         if ($existingRating) {
-            return $this->json(['error' => 'Ya has votado esta receta desde esta IP.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['code' => Response::HTTP_BAD_REQUEST, 'description' => 'Ya has votado esta receta desde esta IP.'], Response::HTTP_BAD_REQUEST);
         }
         $rating = new Rating();
         $rating->setScore($rate);
